@@ -7,12 +7,13 @@ import {
 	postIdParamsSchema,
 	updatePostSchema,
 } from "@/dto/posts.dto";
+import { threadIdParamsSchema } from "@/dto/threads.dto";
 import { authenticateUser } from "./auth";
 
 export async function postRoutes(fastify: FastifyInstance) {
 
 	fastify.get(
-        "/threads/:threadId/posts",
+        "/threads/:id/posts", 
         { preHandler: authenticateUser },
         async (request, reply) => {
             const userId = request.userId;
@@ -25,10 +26,11 @@ export async function postRoutes(fastify: FastifyInstance) {
             if (!user) {
                 return reply.status(404).send({ error: "User not found", success: false });
             }
-            const { threadId } = request.params as { threadId: string };
-            if (!threadId) {
+            const params = threadIdParamsSchema.safeParse(request.params);
+            if (!params.success) {
                 return reply.status(400).send({ success: false, error: "Invalid thread ID" });
             }
+            const threadId = params.data.id;
             try {
                 const threadPosts = await DrizzleClient.query.posts.findMany({
                     where: (p, { eq }) => eq(p.threadId, threadId),
@@ -56,13 +58,13 @@ export async function postRoutes(fastify: FastifyInstance) {
             if (!user) {
                 return reply.status(404).send({ error: "User not found", success: false });
             }
-            const { id } = request.params as { id: string };
-            if (!id) {
+            const params = postIdParamsSchema.safeParse(request.params);
+            if (!params.success) {
                 return reply.status(400).send({ success: false, error: "Invalid post id" });
             }
             try {
                 const post = await DrizzleClient.query.posts.findFirst({
-                    where: (p, { eq }) => eq(p.id, id),
+                    where: (p, { eq }) => eq(p.id, params.data.id),
                 });
                 if (!post) {
                     return reply.status(404).send({ success: false, error: "Post not found" });
