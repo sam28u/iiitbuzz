@@ -164,7 +164,7 @@ export default function ProfileSettingsPage() {
 						)}
 
 						<form onSubmit={handleSubmit} className="space-y-6">
-						{/* Username */}
+							{/* Username */}
 							<div className="space-y-2">
 								<label
 									htmlFor="username"
