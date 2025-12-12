@@ -4,7 +4,7 @@ import Footer from "@/components/ui/footer";
 import Header from "@/components/ui/header";
 import { categories, homeRecentThreads } from "@/data/mock";
 
-export default function ForumHome() {
+export default function HomePage() {
 	return (
 		<div className="min-h-screen flex flex-col bg-background">
 			<Header />

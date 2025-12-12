@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-// Updated Theme type to include all expressive colors
-export type Theme = "system" | "blue" | "green" | "purple" | "orange" | "teal";
+export type Theme = "blue" | "green" | "purple" | "orange" | "teal";
 
 type ThemeProviderProps = {
 	children: React.ReactNode;
@@ -15,7 +14,7 @@ type ThemeProviderState = {
 };
 
 const initialState: ThemeProviderState = {
-	theme: "system",
+	theme: "blue",
 	setTheme: () => null,
 };
 
@@ -23,7 +22,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
 	children,
-	defaultTheme = "system",
+	defaultTheme = "blue",
 	storageKey = "vite-ui-theme",
 	...props
 }: ThemeProviderProps) {

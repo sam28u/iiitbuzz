@@ -164,7 +164,7 @@ export default function ProfileSettingsPage() {
 						)}
 
 						<form onSubmit={handleSubmit} className="space-y-6">
-							{/* Username */}
+						{/* Username */}
 							<div className="space-y-2">
 								<label
 									htmlFor="username"
@@ -179,7 +179,6 @@ export default function ProfileSettingsPage() {
 										handleInputChange("username", e.target.value)
 									}
 									placeholder="Enter a unique username"
-									className="neo-brutal-input"
 								/>
 								<p className="text-sm text-muted-foreground">
 									This will be your public profile URL: /profile/
@@ -203,7 +202,6 @@ export default function ProfileSettingsPage() {
 											handleInputChange("firstName", e.target.value)
 										}
 										placeholder="Enter your first name"
-										className="neo-brutal-input"
 									/>
 								</div>
 								<div className="space-y-2">
@@ -220,7 +218,6 @@ export default function ProfileSettingsPage() {
 											handleInputChange("lastName", e.target.value)
 										}
 										placeholder="Enter your last name"
-										className="neo-brutal-input"
 									/>
 								</div>
 							</div>
@@ -239,7 +236,7 @@ export default function ProfileSettingsPage() {
 									onChange={(e) =>
 										handleInputChange("pronouns", e.target.value)
 									}
-									className="neo-brutal-input w-full bg-background text-foreground p-2 rounded-md border-2 border-border"
+									className="w-full bg-background text-foreground p-2 rounded-md border-2 border-border"
 								>
 									<option value="">Select your pronouns</option>
 									<option value="he/him">he/him</option>
@@ -264,7 +261,7 @@ export default function ProfileSettingsPage() {
 									value={formData.bio}
 									onChange={(e) => handleInputChange("bio", e.target.value)}
 									placeholder="Tell others about yourself..."
-									className="neo-brutal-input min-h-[100px] w-full resize-vertical bg-background text-foreground p-2 rounded-md border-2 border-border"
+									className="min-h-[100px] w-full resize-vertical bg-background text-foreground p-2 rounded-md border-2 border-border"
 									maxLength={255}
 								/>
 								<p className="text-sm text-muted-foreground">
@@ -287,7 +284,7 @@ export default function ProfileSettingsPage() {
 										onChange={(e) =>
 											handleInputChange("branch", e.target.value)
 										}
-										className="neo-brutal-input w-full bg-background text-foreground p-2 rounded-md border-2 border-border"
+										className="w-full bg-background text-foreground p-2 rounded-md border-2 border-border"
 									>
 										<option value="">Select your branch</option>
 										<option value="CSE">Computer Science & Engineering</option>
@@ -313,7 +310,7 @@ export default function ProfileSettingsPage() {
 										onChange={(e) =>
 											handleInputChange("passingOutYear", e.target.value)
 										}
-										className="neo-brutal-input w-full bg-background text-foreground p-2 rounded-md border-2 border-border"
+										className="w-full bg-background text-foreground p-2 rounded-md border-2 border-border"
 									>
 										<option value="">Select year</option>
 										{Array.from({ length: 8 }, (_, i) => {

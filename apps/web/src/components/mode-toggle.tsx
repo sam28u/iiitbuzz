@@ -58,7 +58,7 @@ export function ModeToggle() {
 						tabIndex={0}
 						onClick={() => setIsOpen(false)}
 						onKeyDown={(e) => {
-							if (e.key === "Enter" || e.key === " ") setIsOpen(false);
+							if (e.key === "Enter" || e.key === " " || e.key === "Escape") setIsOpen(false);
 						}}
 					/>
 					<div className="absolute right-0 top-full z-20 mt-2 w-48 border-4 border-border bg-card shadow-[8px_8px_0px_0px_var(--shadow-color)]">
