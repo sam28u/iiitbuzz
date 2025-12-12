@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance , FastifyRequest} from "fastify";
 import { DrizzleClient } from "@/db/index";
 import { posts as postsTable } from "@/db/schema/post.schema";
 import {
@@ -26,30 +26,33 @@ export async function postRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request, reply) => {
-      const userId = request.userId;
-      if (!userId) {
-        return reply
-          .status(401)
-          .send({ error: "Unauthorized", success: false });
-      }
-      const user = await DrizzleClient.query.users.findFirst({
-        where: (u, { eq }) => eq(u.id, userId),
-      });
-      if (!user) {
-        return reply
-          .status(404)
-          .send({ error: "User not found", success: false });
-      }
+    async (
+      request: FastifyRequest<{
+        Params: { id: string };
+        Querystring: { page: number; limit: number };
+      }>,
+      reply
+    ) => {
+      const { page, limit } = request.query;
+      const offset = (page - 1) * limit;
       const params = threadIdParamsSchema.safeParse(request.params);
-      if (!params.success) {
+      if (!params.success)
         return reply
           .status(400)
           .send({ success: false, error: "Invalid thread ID" });
-      }
       const threadId = params.data.id;
-	  const { page = 1, limit = 20 } = request.query as { page?: number; limit?: number };
-	  const offset = (page - 1) * limit;
+      const userId = request.userId;
+      if (!userId)
+        return reply
+          .status(401)
+          .send({ error: "Unauthorized", success: false });
+      const user = await DrizzleClient.query.users.findFirst({
+        where: (u, { eq }) => eq(u.id, userId),
+      });
+      if (!user)
+        return reply
+          .status(404)
+          .send({ error: "User not found", success: false });
       try {
         const threadPosts = await DrizzleClient.query.posts.findMany({
           where: (p, { eq }) => eq(p.threadId, threadId),

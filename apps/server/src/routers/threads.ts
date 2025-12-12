@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance , FastifyRequest} from "fastify";
 import {
 	createThreadSchema,
 	threadIdParamsSchema,
@@ -25,31 +25,33 @@ export async function threadRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request, reply) => {
-      const userId = request.userId;
-      if (!userId) {
-        return reply
-          .status(401)
-          .send({ error: "Unauthorized", success: false });
-      }
-      const user = await DrizzleClient.query.users.findFirst({
-        where: (u, { eq }) => eq(u.id, userId),
-      });
-      if (!user) {
-        return reply
-          .status(404)
-          .send({ error: "User not found", success: false });
-      }
+    async (
+      request: FastifyRequest<{
+        Params: { id: string };
+        Querystring: { page: number; limit: number };
+      }>,
+      reply
+    ) => {
+      const { page, limit } = request.query;
+      const offset = (page - 1) * limit;
       const params = topicIdParamsSchema.safeParse(request.params);
-      if (!params.success) {
+      if (!params.success)
         return reply
           .status(400)
           .send({ success: false, error: "Invalid topic ID" });
-      }
       const topicId = params.data.id;
-      const { page = 1, limit = 10 } =
-        (request.query as { page?: number; limit?: number }) || {};
-      const offset = (page - 1) * limit;
+      const userId = request.userId;
+      if (!userId)
+        return reply
+          .status(401)
+          .send({ error: "Unauthorized", success: false });
+      const user = await DrizzleClient.query.users.findFirst({
+        where: (u, { eq }) => eq(u.id, userId),
+      });
+      if (!user)
+        return reply
+          .status(404)
+          .send({ error: "User not found", success: false });
       try {
         const relatedThreads = await DrizzleClient.query.threads.findMany({
           where: (t, { eq }) => eq(t.topicId, topicId),
@@ -68,10 +70,9 @@ export async function threadRoutes(fastify: FastifyInstance) {
         });
       } catch (error) {
         fastify.log.error("Error fetching threads for topic:", error);
-        return reply.status(500).send({
-          success: false,
-          error: "Failed to fetch threads",
-        });
+        return reply
+          .status(500)
+          .send({ success: false, error: "Failed to fetch threads" });
       }
     }
   );

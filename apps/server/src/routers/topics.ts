@@ -12,50 +12,59 @@ import { authenticateUser } from "./auth";
 export async function topicRoutes(fastify: FastifyInstance) {
 	
 	fastify.get(
-	"/topics",
-	{
-	  preHandler: authenticateUser,
-	  schema: {
-		querystring: {
-		  type: "object",
-		  properties: {
-			page: { type: "integer", minimum: 1, default: 1 },
-			limit: { type: "integer", minimum: 1, maximum: 100, default: 10 },
-		  },
-		},
-	  },
-	},
-	async (request: FastifyRequest<{ Querystring: { page?: number; limit?: number } }>, reply) => {
-	  const userId = request.userId;
-	  if (!userId)
-		return reply
-		  .status(401)
-		  .send({ success: false, error: "Unauthorized" });
-	  const { page = 1, limit = 10 } = request.query;
-	  const offset = (page - 1) * limit;
-	  try {
-		const topics = await DrizzleClient.query.topics.findMany({
-		  limit: limit,
-		  offset: offset,
-		  orderBy: (table, { desc }) => [desc(table.createdAt)],
-		});
-
-		return reply.status(200).send({
-		  success: true,
-		  data: topics,
-		  pagination: {
-			page,
-			limit,
-			count: topics.length,
-		  },
-		});
-	  } catch (error) {
-		fastify.log.error({ err: error }, "Failed to fetch topics");
-		return reply
-		  .status(500)
-		  .send({ success: false, error: "Failed to fetch topics" });
-	  }
-	}
+    "/topics",
+    {
+      preHandler: authenticateUser,
+      schema: {
+        querystring: {
+          type: "object",
+          properties: {
+            page: { type: "integer", minimum: 1, default: 1 },
+            limit: { type: "integer", minimum: 1, maximum: 100, default: 10 },
+          },
+        },
+      },
+    },
+    async (
+      request: FastifyRequest<{ Querystring: { page: number; limit: number } }>,
+      reply
+    ) => {
+      const { page, limit } = request.query;
+      const offset = (page - 1) * limit;
+      const userId = request.userId;
+      if (!userId)
+        return reply
+          .status(401)
+          .send({ success: false, error: "Unauthorized" });
+      const user = await DrizzleClient.query.users.findFirst({
+        where: (u, { eq }) => eq(u.id, userId),
+      });
+      if (!user)
+        return reply
+          .status(404)
+          .send({ success: false, error: "User not found" });
+      try {
+        const topics = await DrizzleClient.query.topics.findMany({
+          limit: limit,
+          offset: offset,
+          orderBy: (table, { desc }) => [desc(table.createdAt)],
+        });
+        return reply.status(200).send({
+          success: true,
+          data: topics,
+          pagination: {
+            page,
+            limit,
+            count: topics.length,
+          },
+        });
+      } catch (error) {
+        fastify.log.error({ err: error }, "Failed to fetch topics");
+        return reply
+          .status(500)
+          .send({ success: false, error: "Failed to fetch topics" });
+      }
+    }
   );
 
 	fastify.post(
