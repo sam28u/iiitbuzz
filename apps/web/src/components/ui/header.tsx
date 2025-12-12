@@ -31,7 +31,7 @@ const Header = ({ hideThemeToggle = false }: HeaderProps) => {
 								Welcome, {user?.firstName || user?.username || user?.email}!
 							</span>
 
-							<Link to="/my/profile">
+							<Link to={`/profile/${user?.username}`}>
 								<Button
 									variant="outline"
 									className="neo-brutal-button border-primary text-primary bg-secondary hover:bg-secondary hover:text-black"

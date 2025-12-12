@@ -106,9 +106,7 @@ export default function ProfileSettingsPage() {
 				description: "Your changes have been saved.",
 				duration: 3000,
 			});
-
-			// Redirect to the new profile view
-			navigate("/my/profile");
+			navigate(`/profile/${cleanedData.username || user?.username}`);
 		} catch (error) {
 			console.error("Profile update error:", error);
 			setError(
@@ -150,7 +148,7 @@ export default function ProfileSettingsPage() {
 							</h1>
 							<Button
 								variant="outline"
-								onClick={() => navigate("/my/profile")}
+								onClick={() => navigate(`/profile/${user?.username}`)}
 								className="neo-brutal-button"
 							>
 								Cancel

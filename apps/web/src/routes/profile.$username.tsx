@@ -7,31 +7,110 @@ import {
 	Settings,
 	ThumbsUp,
 } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router";
+import Loader from "@/components/loader";
 import Footer from "@/components/ui/footer";
 import Header from "@/components/ui/header";
-import { useAuth } from "@/contexts/AuthContext";
 import {
-	mockUser,
-	myProfileRecentActivity,
-	myProfileRecentThreads,
-	myProfileStats,
+	profileRecentActivity,
+	profileRecentThreads,
+	profileStats,
 } from "@/data/mock";
 
-export default function MyProfilePage() {
-	const { user: authUser } = useAuth();
-	const user = authUser || mockUser;
+interface UserProfile {
+	id: string;
+	username: string;
+	email?: string;
+	firstName: string | null;
+	lastName: string | null;
+	pronouns: string | null;
+	bio: string | null;
+	branch: string | null;
+	passingOutYear: number | null;
+	totalPosts: number;
+}
 
+// Move backendUrl outside the component to keep it constant
+const backendUrl =
+	import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
+
+export default function UserProfilePage() {
+	const { username } = useParams();
+	const [user, setUser] = useState<UserProfile | null>(null);
+	const [isOwnProfile, setIsOwnProfile] = useState(false);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 	const [activeTab, setActiveTab] = useState<"threads" | "activity">("threads");
+
+	useEffect(() => {
+		const fetchProfile = async () => {
+			if (!username) return;
+
+			setLoading(true);
+			setError(null);
+
+			try {
+				const response = await fetch(`${backendUrl}/user/details/${username}`, {
+					credentials: "include", // Important to determine isOwnProfile on backend
+				});
+
+				const data = await response.json();
+
+				if (!response.ok) {
+					throw new Error(data.error || "Failed to load profile");
+				}
+
+				setUser(data.user);
+				setIsOwnProfile(data.isOwnProfile);
+			} catch (err) {
+				console.error("Error fetching profile:", err);
+				setError(err instanceof Error ? err.message : "An error occurred");
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchProfile();
+	}, [username]);
+
+	if (loading) {
+		return (
+			<div className="min-h-screen flex flex-col bg-background">
+				<Header />
+				<main className="flex-1 flex items-center justify-center">
+					<Loader />
+				</main>
+				<Footer />
+			</div>
+		);
+	}
+
+	if (error || !user) {
+		return (
+			<div className="min-h-screen flex flex-col bg-background">
+				<Header />
+				<main className="flex-1 container mx-auto px-4 py-8 text-center">
+					<h1 className="text-2xl font-bold mb-4">Profile Not Found</h1>
+					<p className="text-muted-foreground mb-6">
+						{error || "The user you are looking for does not exist."}
+					</p>
+					<Link to="/home" className="text-primary hover:underline">
+						Return to Home
+					</Link>
+				</main>
+				<Footer />
+			</div>
+		);
+	}
 
 	const displayUser = {
 		username: user.username || "Anonymous",
-		avatar: (user.username?.[0] || user.email[0] || "U").toUpperCase(),
+		avatar: (user.username?.[0] || user.email?.[0] || "U").toUpperCase(),
 		role: "Member",
 		bio: user.bio || "No bio yet.",
 		location: user.branch || "Unknown Dept",
-		joinDate: "Joined recently",
+		joinDate: "Joined recently", // You might want to add createdAt to your API
 	};
 
 	return (
@@ -57,16 +136,18 @@ export default function MyProfilePage() {
 									{displayUser.avatar}
 								</div>
 
-								{/* Settings Link points to the settings route */}
-								<Link to="/settings/profile">
-									<button
-										type="button"
-										className="border-3 border-border bg-card p-2 shadow-[3px_3px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:translate-x-[1px] hover:translate-y-[1px]"
-									>
-										<Settings className="h-4 w-4 sm:h-5 sm:w-5" />
-										<span className="sr-only">Edit Profile</span>
-									</button>
-								</Link>
+								{/* Conditionally render Settings button */}
+								{isOwnProfile && (
+									<Link to="/settings/profile">
+										<button
+											type="button"
+											className="border-3 border-border bg-card p-2 shadow-[3px_3px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:translate-x-[1px] hover:translate-y-[1px]"
+											aria-label="Edit Profile"
+										>
+											<Settings className="h-4 w-4 sm:h-5 sm:w-5" />
+										</button>
+									</Link>
+								)}
 							</div>
 
 							{/* User Info */}
@@ -109,7 +190,7 @@ export default function MyProfilePage() {
 								</div>
 								<div className="border-3 border-border bg-secondary text-secondary-foreground p-3 sm:p-4 text-center shadow-[3px_3px_0px_0px_var(--shadow-color)]">
 									<div className="font-bold text-2xl sm:text-3xl">
-										{myProfileStats.threads}
+										{profileStats.threads}
 									</div>
 									<div className="mt-1 font-bold text-[10px] sm:text-xs">
 										THREADS
@@ -117,7 +198,7 @@ export default function MyProfilePage() {
 								</div>
 								<div className="border-3 border-border bg-accent text-accent-foreground p-3 sm:p-4 text-center shadow-[3px_3px_0px_0px_var(--shadow-color)]">
 									<div className="font-bold text-2xl sm:text-3xl">
-										{myProfileStats.likes}
+										{profileStats.likes}
 									</div>
 									<div className="mt-1 font-bold text-[10px] sm:text-xs">
 										LIKES
@@ -125,7 +206,7 @@ export default function MyProfilePage() {
 								</div>
 								<div className="border-3 border-border bg-muted text-muted-foreground p-3 sm:p-4 text-center shadow-[3px_3px_0px_0px_var(--shadow-color)]">
 									<div className="font-bold text-2xl sm:text-3xl">
-										{myProfileStats.solutions}
+										{profileStats.solutions}
 									</div>
 									<div className="mt-1 font-bold text-[10px] sm:text-xs">
 										SOLUTIONS
@@ -148,7 +229,7 @@ export default function MyProfilePage() {
 										: "bg-card text-foreground hover:opacity-80"
 								}`}
 							>
-								My Threads
+								Recent Threads
 							</button>
 							<button
 								type="button"
@@ -168,10 +249,10 @@ export default function MyProfilePage() {
 							{activeTab === "threads" && (
 								<div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
 									<h2 className="mb-4 font-bold text-xl sm:text-2xl text-foreground">
-										My Recent Threads
+										Recent Threads
 									</h2>
 									<div className="space-y-3 sm:space-y-4">
-										{myProfileRecentThreads.map((thread) => (
+										{profileRecentThreads.map((thread) => (
 											<Link
 												key={thread.id}
 												to={`/thread/${thread.id}`}
@@ -210,7 +291,7 @@ export default function MyProfilePage() {
 												</div>
 											</Link>
 										))}
-										{myProfileRecentThreads.length === 0 && (
+										{profileRecentThreads.length === 0 && (
 											<div className="text-center py-12 text-muted-foreground border-4 border-border border-dashed p-8">
 												<p className="text-lg">No threads yet</p>
 											</div>
@@ -225,7 +306,7 @@ export default function MyProfilePage() {
 										Recent Activity
 									</h2>
 									<div className="space-y-3">
-										{myProfileRecentActivity.map((activity) => (
+										{profileRecentActivity.map((activity) => (
 											<div
 												key={activity.id}
 												className="border-3 border-border bg-card p-3 sm:p-4 shadow-[4px_4px_0px_0px_var(--shadow-color)]"
@@ -245,7 +326,7 @@ export default function MyProfilePage() {
 												</div>
 											</div>
 										))}
-										{myProfileRecentActivity.length === 0 && (
+										{profileRecentActivity.length === 0 && (
 											<div className="text-center py-12 text-muted-foreground border-4 border-border border-dashed p-8">
 												<p className="text-lg">No activity yet</p>
 											</div>
