@@ -5,7 +5,7 @@ import Header from "@/components/ui/header";
 
 export default function HomePage() {
 	return (
-		<div className="flex flex-col min-h-screen">
+		<div className="flex flex-col min-h-screen landing-theme">
 			<Header />
 			<div className="relative flex-1">
 				<main className="relative z-10">
