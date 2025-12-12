@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import { DrizzleClient } from "@/db/index";
 import { topics as topicsTable } from "@/db/schema/topic.schema";
 import {
@@ -12,25 +12,51 @@ import { authenticateUser } from "./auth";
 export async function topicRoutes(fastify: FastifyInstance) {
 	
 	fastify.get(
-        "/topics",
-        { preHandler: authenticateUser },
-        async (request, reply) => {
-            const userId = request.userId;
-            if (!userId)
-                return reply
-                    .status(401)
-                    .send({ success: false, error: "Unauthorized" });
-            try {
-                const allTopics = await DrizzleClient.query.topics.findMany();
-                return reply.status(200).send({ success: true, topics: allTopics });
-            } catch (error) {
-                fastify.log.error({ err: error }, "Failed to fetch topics");
-                return reply
-                    .status(500)
-                    .send({ success: false, error: "Failed to fetch topics" });
-            }
-        },
-    );
+	"/topics",
+	{
+	  preHandler: authenticateUser,
+	  schema: {
+		querystring: {
+		  type: "object",
+		  properties: {
+			page: { type: "integer", minimum: 1, default: 1 },
+			limit: { type: "integer", minimum: 1, maximum: 100, default: 10 },
+		  },
+		},
+	  },
+	},
+	async (request: FastifyRequest<{ Querystring: { page?: number; limit?: number } }>, reply) => {
+	  const userId = request.userId;
+	  if (!userId)
+		return reply
+		  .status(401)
+		  .send({ success: false, error: "Unauthorized" });
+	  const { page = 1, limit = 10 } = request.query;
+	  const offset = (page - 1) * limit;
+	  try {
+		const topics = await DrizzleClient.query.topics.findMany({
+		  limit: limit,
+		  offset: offset,
+		  orderBy: (table, { desc }) => [desc(table.createdAt)],
+		});
+
+		return reply.status(200).send({
+		  success: true,
+		  data: topics,
+		  pagination: {
+			page,
+			limit,
+			count: topics.length,
+		  },
+		});
+	  } catch (error) {
+		fastify.log.error({ err: error }, "Failed to fetch topics");
+		return reply
+		  .status(500)
+		  .send({ success: false, error: "Failed to fetch topics" });
+	  }
+	}
+  );
 
 	fastify.post(
 		"/topics",

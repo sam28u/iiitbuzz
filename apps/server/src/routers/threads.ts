@@ -12,9 +12,18 @@ import { topicIdParamsSchema } from "@/dto/topics.dto";
 
 export async function threadRoutes(fastify: FastifyInstance) {
 	fastify.get(
-    "/topics/:id/threads", 
+    "/topics/:id/threads",
     {
       preHandler: authenticateUser,
+      schema: {
+        querystring: {
+          type: "object",
+          properties: {
+            page: { type: "integer", minimum: 1, default: 1 },
+            limit: { type: "integer", minimum: 1, maximum: 50, default: 10 },
+          },
+        },
+      },
     },
     async (request, reply) => {
       const userId = request.userId;
@@ -38,14 +47,25 @@ export async function threadRoutes(fastify: FastifyInstance) {
           .send({ success: false, error: "Invalid topic ID" });
       }
       const topicId = params.data.id;
+      const { page = 1, limit = 10 } =
+        (request.query as { page?: number; limit?: number }) || {};
+      const offset = (page - 1) * limit;
       try {
         const relatedThreads = await DrizzleClient.query.threads.findMany({
           where: (t, { eq }) => eq(t.topicId, topicId),
           orderBy: (t, { desc }) => [desc(t.createdAt)],
+          limit: limit,
+          offset: offset,
         });
-        return reply
-          .status(200)
-          .send({ success: true, threads: relatedThreads });
+        return reply.status(200).send({
+          success: true,
+          threads: relatedThreads,
+          pagination: {
+            page,
+            limit,
+            count: relatedThreads.length,
+          },
+        });
       } catch (error) {
         fastify.log.error("Error fetching threads for topic:", error);
         return reply.status(500).send({
@@ -55,6 +75,8 @@ export async function threadRoutes(fastify: FastifyInstance) {
       }
     }
   );
+
+
 
 	fastify.get(
     "/threads/:id",
