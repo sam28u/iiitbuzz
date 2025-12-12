@@ -17,7 +17,7 @@ interface ProfileFormData {
 	passingOutYear: string;
 }
 
-export default function MyProfilePage() {
+export default function ProfileSettingsPage() {
 	const { user, refreshUser, isAuthenticated, isLoading } = useAuth();
 	const navigate = useNavigate();
 	const [formData, setFormData] = useState<ProfileFormData>({
@@ -98,8 +98,6 @@ export default function MyProfilePage() {
 				throw new Error(errorData.error || "Failed to update profile");
 			}
 
-			const result = await response.json();
-
 			// Refresh user data in context
 			await refreshUser();
 
@@ -108,13 +106,7 @@ export default function MyProfilePage() {
 				description: "Your changes have been saved.",
 				duration: 3000,
 			});
-
-			// Redirect to profile page
-			if (result.user.username) {
-				navigate(`/profile/${result.user.username}`);
-			} else {
-				navigate("/home");
-			}
+			navigate(`/profile/${cleanedData.username || user?.username}`);
 		} catch (error) {
 			console.error("Profile update error:", error);
 			setError(
@@ -156,7 +148,7 @@ export default function MyProfilePage() {
 							</h1>
 							<Button
 								variant="outline"
-								onClick={() => navigate(-1)}
+								onClick={() => navigate(`/profile/${user?.username}`)}
 								className="neo-brutal-button"
 							>
 								Cancel
@@ -185,7 +177,6 @@ export default function MyProfilePage() {
 										handleInputChange("username", e.target.value)
 									}
 									placeholder="Enter a unique username"
-									className="neo-brutal-input text-white"
 								/>
 								<p className="text-sm text-muted-foreground">
 									This will be your public profile URL: /profile/
@@ -209,7 +200,6 @@ export default function MyProfilePage() {
 											handleInputChange("firstName", e.target.value)
 										}
 										placeholder="Enter your first name"
-										className="neo-brutal-input text-white"
 									/>
 								</div>
 								<div className="space-y-2">
@@ -226,7 +216,6 @@ export default function MyProfilePage() {
 											handleInputChange("lastName", e.target.value)
 										}
 										placeholder="Enter your last name"
-										className="neo-brutal-input text-white"
 									/>
 								</div>
 							</div>
@@ -245,7 +234,7 @@ export default function MyProfilePage() {
 									onChange={(e) =>
 										handleInputChange("pronouns", e.target.value)
 									}
-									className="neo-brutal-input w-full text-white"
+									className="w-full bg-background text-foreground p-2 rounded-md border-2 border-border"
 								>
 									<option value="">Select your pronouns</option>
 									<option value="he/him">he/him</option>
@@ -270,7 +259,7 @@ export default function MyProfilePage() {
 									value={formData.bio}
 									onChange={(e) => handleInputChange("bio", e.target.value)}
 									placeholder="Tell others about yourself..."
-									className="border-red-500 neo-brutal-input min-h-[100px] w-full resize-vertical text-white "
+									className="min-h-[100px] w-full resize-vertical bg-background text-foreground p-2 rounded-md border-2 border-border"
 									maxLength={255}
 								/>
 								<p className="text-sm text-muted-foreground">
@@ -293,7 +282,7 @@ export default function MyProfilePage() {
 										onChange={(e) =>
 											handleInputChange("branch", e.target.value)
 										}
-										className="neo-brutal-input w-full text-white"
+										className="w-full bg-background text-foreground p-2 rounded-md border-2 border-border"
 									>
 										<option value="">Select your branch</option>
 										<option value="CSE">Computer Science & Engineering</option>
@@ -319,7 +308,7 @@ export default function MyProfilePage() {
 										onChange={(e) =>
 											handleInputChange("passingOutYear", e.target.value)
 										}
-										className="neo-brutal-input w-full text-white"
+										className="w-full bg-background text-foreground p-2 rounded-md border-2 border-border"
 									>
 										<option value="">Select year</option>
 										{Array.from({ length: 8 }, (_, i) => {
