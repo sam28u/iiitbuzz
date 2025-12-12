@@ -15,7 +15,7 @@ export async function postRoutes(fastify: FastifyInstance) {
 	fastify.get(
     "/threads/:id/posts",
     {
-	  preHandler: [authenticateUser , attachUser as any ],
+	  preHandler: [authenticateUser , attachUser],
       schema: {
         querystring: {
           type: "object",
@@ -74,7 +74,7 @@ export async function postRoutes(fastify: FastifyInstance) {
 	
     fastify.get(
         "/posts/:id",
-        { 	  preHandler: [authenticateUser , attachUser as any ], },
+        { 	  preHandler: [authenticateUser , attachUser ], },
         async (request, reply) => {
             const params = postIdParamsSchema.safeParse(request.params);
             if (!params.success) {

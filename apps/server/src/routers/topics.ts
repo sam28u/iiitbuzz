@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { DrizzleClient } from "@/db/index";
 import { topics as topicsTable } from "@/db/schema/topic.schema";
@@ -14,7 +14,7 @@ export async function topicRoutes(fastify: FastifyInstance) {
 	fastify.get(
 	"/topics",
 	{
-	  preHandler: [authenticateUser , attachUser as any ],
+	  preHandler: [authenticateUser , attachUser],
 	  schema: {
 		querystring: {
 		  type: "object",
@@ -32,18 +32,21 @@ export async function topicRoutes(fastify: FastifyInstance) {
       const { page, limit } = request.query;
       const offset = (page - 1) * limit;
       try {
-        const topics = await DrizzleClient.query.topics.findMany({
-          limit: limit,
-          offset: offset,
-          orderBy: (table, { desc }) => [desc(table.createdAt)],
-        });
+        const [topics, countResult] = await Promise.all([
+          DrizzleClient.query.topics.findMany({
+            limit: limit,
+            offset: offset,
+            orderBy: (table, { desc }) => [desc(table.createdAt)],
+          }),
+          DrizzleClient.select({ total: count() }).from(topicsTable),
+        ]);
         return reply.status(200).send({
           success: true,
           data: topics,
           pagination: {
             page,
             limit,
-            count: topics.length,
+            count: countResult[0]?.total ?? 0,
           },
         });
       } catch (error) {

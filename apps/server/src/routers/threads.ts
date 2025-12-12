@@ -14,7 +14,7 @@ export async function threadRoutes(fastify: FastifyInstance) {
 	fastify.get(
     "/topics/:id/threads",
     {
-	  preHandler: [authenticateUser , attachUser as any ],
+	  preHandler: [authenticateUser , attachUser ],
       schema: {
         querystring: {
           type: "object",
@@ -75,7 +75,7 @@ export async function threadRoutes(fastify: FastifyInstance) {
 
 	fastify.get(
     "/threads/:id",
-    { 	  preHandler: [authenticateUser , attachUser as any ], },
+    { 	  preHandler: [authenticateUser , attachUser ], },
     async (request, reply) => {
       const params = threadIdParamsSchema.safeParse(request.params);
       if (!params.success) {

@@ -268,14 +268,15 @@ export const authenticateUser: AuthenticationMiddleware = async (
 };
 
 // user authentication - added by sambhu ( to remove the code redundancy)
-export const attachUser = async (request: AuthenticatedRequest, reply: FastifyReply) => {
+export const attachUser = async (request: FastifyRequest, reply: FastifyReply) => {
+  const authRequest = request as AuthenticatedRequest;
   const user = await DrizzleClient.query.users.findFirst({
-	where: (u, { eq }) => eq(u.id, request.userId),
+	where: (u, { eq }) => eq(u.id, authRequest.userId),
   });
   if (!user) {
 	return reply.status(404).send({ success: false, error: "User not found" });
   }
-  (request).user = user;
+  authRequest.user = user;
 };
 
 // Optional authentication middleware - doesn't block request if no auth
