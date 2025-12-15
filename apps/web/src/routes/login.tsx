@@ -10,7 +10,7 @@ export default function LoginPage() {
 	};
 
 	return (
-		<div className="flex flex-col min-h-screen">
+		<div className="flex flex-col min-h-screen landing-theme">
 			<main className="flex-1">
 				<section className="relative min-h-screen flex items-center justify-center overflow-hidden">
 					<div className="absolute inset-0 bg-gradient-to-br from-background via-muted/20 to-background z-0" />

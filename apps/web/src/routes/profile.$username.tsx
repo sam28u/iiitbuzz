@@ -1,14 +1,27 @@
+import {
+	ArrowLeft,
+	Calendar,
+	Eye,
+	MapPin,
+	MessageSquare,
+	Settings,
+	ThumbsUp,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { Button } from "@/components/ui/button";
+import Loader from "@/components/loader";
 import Footer from "@/components/ui/footer";
 import Header from "@/components/ui/header";
-import { useAuth } from "@/contexts/AuthContext";
+import {
+	profileRecentActivity,
+	profileRecentThreads,
+	profileStats,
+} from "@/data/mock";
 
 interface UserProfile {
 	id: string;
-	email?: string; // Only present if own profile
-	username: string | null;
+	username: string;
+	email?: string;
 	firstName: string | null;
 	lastName: string | null;
 	pronouns: string | null;
@@ -18,48 +31,41 @@ interface UserProfile {
 	totalPosts: number;
 }
 
-interface ProfileResponse {
-	success: boolean;
-	isOwnProfile: boolean;
-	user: UserProfile;
-}
+// Move backendUrl outside the component to keep it constant
+const backendUrl =
+	import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
 
-export default function ProfilePage() {
-	const { username } = useParams<{ username: string }>();
-	const { user: _currentUser } = useAuth();
-	const [profile, setProfile] = useState<UserProfile | null>(null);
+export default function UserProfilePage() {
+	const { username } = useParams();
+	const [user, setUser] = useState<UserProfile | null>(null);
 	const [isOwnProfile, setIsOwnProfile] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
-
-	const backendUrl =
-		import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
+	const [activeTab, setActiveTab] = useState<"threads" | "activity">("threads");
 
 	useEffect(() => {
 		const fetchProfile = async () => {
 			if (!username) return;
 
+			setLoading(true);
+			setError(null);
+
 			try {
-				setLoading(true);
 				const response = await fetch(`${backendUrl}/user/details/${username}`, {
-					credentials: "include",
+					credentials: "include", // Important to determine isOwnProfile on backend
 				});
 
+				const data = await response.json();
+
 				if (!response.ok) {
-					if (response.status === 404) {
-						setError("User not found");
-					} else {
-						setError("Failed to load profile");
-					}
-					return;
+					throw new Error(data.error || "Failed to load profile");
 				}
 
-				const data: ProfileResponse = await response.json();
-				setProfile(data.user);
+				setUser(data.user);
 				setIsOwnProfile(data.isOwnProfile);
 			} catch (err) {
-				setError("Failed to load profile");
-				console.error("Profile fetch error:", err);
+				console.error("Error fetching profile:", err);
+				setError(err instanceof Error ? err.message : "An error occurred");
 			} finally {
 				setLoading(false);
 			}
@@ -70,138 +76,264 @@ export default function ProfilePage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen flex flex-col">
+			<div className="min-h-screen flex flex-col bg-background">
 				<Header />
 				<main className="flex-1 flex items-center justify-center">
-					<div className="text-center">
-						<div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-						<p className="mt-4 text-muted-foreground">Loading profile...</p>
-					</div>
+					<Loader />
 				</main>
 				<Footer />
 			</div>
 		);
 	}
 
-	if (error || !profile) {
+	if (error || !user) {
 		return (
-			<div className="min-h-screen flex flex-col">
+			<div className="min-h-screen flex flex-col bg-background">
 				<Header />
-				<main className="flex-1 flex items-center justify-center">
-					<div className="text-center">
-						<h1 className="text-4xl font-bold text-foreground mb-4">
-							😕 Oops!
-						</h1>
-						<p className="text-xl text-muted-foreground mb-8">
-							{error || "Profile not found"}
-						</p>
-						<Link to="/home">
-							<Button>Go Back Home</Button>
-						</Link>
-					</div>
+				<main className="flex-1 container mx-auto px-4 py-8 text-center">
+					<h1 className="text-2xl font-bold mb-4">Profile Not Found</h1>
+					<p className="text-muted-foreground mb-6">
+						{error || "The user you are looking for does not exist."}
+					</p>
+					<Link to="/home" className="text-primary hover:underline">
+						Return to Home
+					</Link>
 				</main>
 				<Footer />
 			</div>
 		);
 	}
 
-	const displayName =
-		profile.firstName && profile.lastName
-			? `${profile.firstName} ${profile.lastName}`
-			: profile.firstName || profile.username || "Anonymous User";
+	const displayUser = {
+		username: user.username || "Anonymous",
+		avatar: (user.username?.[0] || user.email?.[0] || "U").toUpperCase(),
+		role: "Member",
+		bio: user.bio || "No bio yet.",
+		location: user.branch || "Unknown Dept",
+		joinDate: "Joined recently", // You might want to add createdAt to your API
+	};
 
 	return (
-		<div className="min-h-screen flex flex-col">
+		<div className="min-h-screen flex flex-col bg-background">
 			<Header />
-			<main className="flex-1 container mx-auto px-4 py-8">
-				<div className="max-w-4xl mx-auto">
-					{/* Profile Header */}
-					<div className="neo-brutal-card p-8 mb-8">
-						<div className="flex items-center justify-between mb-6">
-							<div className="flex items-center gap-4">
-								<div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold">
-									{displayName.charAt(0).toUpperCase()}
+			<main className="mx-auto max-w-7xl px-4 py-6 sm:py-8 flex-1">
+				<div className="mx-auto max-w-7xl px-4 py-4 sm:py-6">
+					<Link
+						to="/home"
+						className="mb-3 sm:mb-4 inline-flex items-center gap-2 font-bold text-sm text-primary hover:underline"
+					>
+						<ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+						Back to Forum
+					</Link>
+				</div>
+				<div className="grid gap-6 lg:grid-cols-3">
+					{/* Left Sidebar - Profile Info */}
+					<div className="lg:col-span-1">
+						<div className="border-4 border-border bg-card p-4 sm:p-6 shadow-[6px_6px_0px_0px_var(--shadow-color)]">
+							{/* Avatar & Settings */}
+							<div className="mb-4 flex items-start justify-between">
+								<div className="flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center border-4 border-border bg-primary font-bold text-3xl sm:text-4xl text-primary-foreground">
+									{displayUser.avatar}
 								</div>
-								<div>
-									<h1 className="text-3xl font-bold pixel-font text-foreground mb-1">
-										{displayName}
-									</h1>
-									{profile.username && (
-										<p className="text-muted-foreground text-lg">
-											@{profile.username}
-										</p>
-									)}
-									{profile.pronouns && (
-										<span className="inline-block bg-secondary text-secondary-foreground px-2 py-1 rounded text-sm mt-1">
-											{profile.pronouns}
-										</span>
-									)}
-								</div>
+
+								{/* Conditionally render Settings button */}
+								{isOwnProfile && (
+									<Link to="/settings/profile">
+										<button
+											type="button"
+											className="border-3 border-border bg-card p-2 shadow-[3px_3px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:translate-x-[1px] hover:translate-y-[1px]"
+											aria-label="Edit Profile"
+										>
+											<Settings className="h-4 w-4 sm:h-5 sm:w-5" />
+										</button>
+									</Link>
+								)}
 							</div>
 
-							{isOwnProfile && (
-								<Link to="/my/profile">
-									<Button variant="outline" className="neo-brutal-button">
-										Edit Profile
-									</Button>
-								</Link>
-							)}
+							{/* User Info */}
+							<h1 className="mb-2 font-bold text-xl sm:text-2xl text-foreground">
+								{displayUser.username}
+							</h1>
+							<div className="mb-4 rounded border-2 border-border bg-accent text-accent-foreground px-3 py-1 inline-block font-bold text-xs sm:text-sm">
+								{displayUser.role}
+							</div>
+
+							<p className="mb-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
+								{displayUser.bio}
+							</p>
+
+							<div className="space-y-2 text-xs sm:text-sm text-foreground">
+								<div className="flex items-center gap-2">
+									<MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+									<span className="leading-tight">{displayUser.location}</span>
+								</div>
+								<div className="flex items-center gap-2">
+									<Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+									<span>{displayUser.joinDate}</span>
+								</div>
+							</div>
 						</div>
 
-						{profile.bio && (
-							<div className="mb-6">
-								<p className="text-lg public-sans-font text-foreground">
-									{profile.bio}
-								</p>
-							</div>
-						)}
-
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							{profile.email && isOwnProfile && (
-								<div className="flex items-center gap-2">
-									<span className="text-muted-foreground">📧</span>
-									<span className="text-sm text-foreground">
-										{profile.email}
-									</span>
+						{/* Stats */}
+						<div className="mt-6 border-4 border-border bg-card p-4 sm:p-6 shadow-[6px_6px_0px_0px_var(--shadow-color)]">
+							<h2 className="mb-4 font-bold text-lg sm:text-xl text-foreground">
+								Statistics
+							</h2>
+							<div className="grid grid-cols-2 gap-3 sm:gap-4">
+								<div className="border-3 border-border bg-primary text-primary-foreground p-3 sm:p-4 text-center shadow-[3px_3px_0px_0px_var(--shadow-color)]">
+									<div className="font-bold text-2xl sm:text-3xl">
+										{user.totalPosts || 0}
+									</div>
+									<div className="mt-1 font-bold text-[10px] sm:text-xs">
+										POSTS
+									</div>
 								</div>
-							)}
-
-							{profile.branch && (
-								<div className="flex items-center gap-2">
-									<span className="text-muted-foreground">📍</span>
-									<span className="text-sm text-foreground">
-										{profile.branch}
-									</span>
+								<div className="border-3 border-border bg-secondary text-secondary-foreground p-3 sm:p-4 text-center shadow-[3px_3px_0px_0px_var(--shadow-color)]">
+									<div className="font-bold text-2xl sm:text-3xl">
+										{profileStats.threads}
+									</div>
+									<div className="mt-1 font-bold text-[10px] sm:text-xs">
+										THREADS
+									</div>
 								</div>
-							)}
-
-							{profile.passingOutYear && (
-								<div className="flex items-center gap-2">
-									<span className="text-muted-foreground">📅</span>
-									<span className="text-sm text-foreground">
-										Class of {profile.passingOutYear}
-									</span>
+								<div className="border-3 border-border bg-accent text-accent-foreground p-3 sm:p-4 text-center shadow-[3px_3px_0px_0px_var(--shadow-color)]">
+									<div className="font-bold text-2xl sm:text-3xl">
+										{profileStats.likes}
+									</div>
+									<div className="mt-1 font-bold text-[10px] sm:text-xs">
+										LIKES
+									</div>
 								</div>
-							)}
-
-							<div className="flex items-center gap-2">
-								<span className="text-muted-foreground">💬</span>
-								<span className="text-sm text-foreground">
-									{profile.totalPosts} posts
-								</span>
+								<div className="border-3 border-border bg-muted text-muted-foreground p-3 sm:p-4 text-center shadow-[3px_3px_0px_0px_var(--shadow-color)]">
+									<div className="font-bold text-2xl sm:text-3xl">
+										{profileStats.solutions}
+									</div>
+									<div className="mt-1 font-bold text-[10px] sm:text-xs">
+										SOLUTIONS
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
 
-					{/* Activity Section */}
-					<div className="neo-brutal-card p-8">
-						<h2 className="text-2xl font-bold pixel-font text-foreground mb-6">
-							Recent Activity
-						</h2>
-						<div className="text-center py-12 text-muted-foreground">
-							<div className="text-6xl mb-4">💬</div>
-							<p className="text-lg mb-2">No recent activity to show</p>
-							<p className="text-sm">Posts and comments will appear here</p>
+					{/* Right Content - Threads & Activity */}
+					<div className="lg:col-span-2">
+						{/* Tabs */}
+						<div className="mb-4 sm:mb-6 flex flex-wrap gap-2">
+							<button
+								type="button"
+								onClick={() => setActiveTab("threads")}
+								className={`border-4 border-border px-4 sm:px-6 py-2 sm:py-3 font-bold text-xs sm:text-base shadow-[4px_4px_0px_0px_var(--shadow-color)] transition-all ${
+									activeTab === "threads"
+										? "bg-foreground text-background"
+										: "bg-card text-foreground hover:opacity-80"
+								}`}
+							>
+								Recent Threads
+							</button>
+							<button
+								type="button"
+								onClick={() => setActiveTab("activity")}
+								className={`border-4 border-border px-4 sm:px-6 py-2 sm:py-3 font-bold text-xs sm:text-base shadow-[4px_4px_0px_0px_var(--shadow-color)] transition-all ${
+									activeTab === "activity"
+										? "bg-foreground text-background"
+										: "bg-card text-foreground hover:opacity-80"
+								}`}
+							>
+								Recent Activity
+							</button>
+						</div>
+
+						{/* Content Area */}
+						<div className="min-h-[400px]">
+							{activeTab === "threads" && (
+								<div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+									<h2 className="mb-4 font-bold text-xl sm:text-2xl text-foreground">
+										Recent Threads
+									</h2>
+									<div className="space-y-3 sm:space-y-4">
+										{profileRecentThreads.map((thread) => (
+											<Link
+												key={thread.id}
+												to={`/thread/${thread.id}`}
+												className="block"
+											>
+												<div className="border-4 border-border bg-card p-4 sm:p-5 shadow-[6px_6px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[3px_3px_0px_0px_var(--shadow-color)] hover:translate-x-[3px] hover:translate-y-[3px]">
+													<div className="mb-2">
+														<span
+															className={`rounded border-2 border-border ${thread.categoryColor} px-2 py-0.5 font-bold text-xs`}
+														>
+															{thread.category}
+														</span>
+													</div>
+													<h3 className="mb-3 font-bold text-base sm:text-xl leading-tight text-foreground">
+														{thread.title}
+													</h3>
+													<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+														<span className="text-muted-foreground text-xs sm:text-sm">
+															{thread.createdAt}
+														</span>
+														<div className="flex gap-3 sm:gap-4 text-xs sm:text-sm font-bold">
+															<span className="flex items-center gap-1">
+																<MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
+																{thread.replies}
+															</span>
+															<span className="flex items-center gap-1 text-muted-foreground">
+																<Eye className="h-3 w-3 sm:h-4 sm:w-4" />
+																{thread.views}
+															</span>
+															<span className="flex items-center gap-1 text-primary">
+																<ThumbsUp className="h-3 w-3 sm:h-4 sm:w-4" />
+																{thread.likes}
+															</span>
+														</div>
+													</div>
+												</div>
+											</Link>
+										))}
+										{profileRecentThreads.length === 0 && (
+											<div className="text-center py-12 text-muted-foreground border-4 border-border border-dashed p-8">
+												<p className="text-lg">No threads yet</p>
+											</div>
+										)}
+									</div>
+								</div>
+							)}
+
+							{activeTab === "activity" && (
+								<div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+									<h2 className="mb-4 font-bold text-xl sm:text-2xl text-foreground">
+										Recent Activity
+									</h2>
+									<div className="space-y-3">
+										{profileRecentActivity.map((activity) => (
+											<div
+												key={activity.id}
+												className="border-3 border-border bg-card p-3 sm:p-4 shadow-[4px_4px_0px_0px_var(--shadow-color)]"
+											>
+												<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+													<div className="flex-1 min-w-0">
+														<div className="mb-1 font-bold text-sm sm:text-base text-foreground">
+															{activity.action}
+														</div>
+														<div className="text-muted-foreground text-xs sm:text-sm leading-tight">
+															{activity.threadTitle}
+														</div>
+													</div>
+													<span className="text-muted-foreground text-xs sm:text-sm whitespace-nowrap">
+														{activity.time}
+													</span>
+												</div>
+											</div>
+										))}
+										{profileRecentActivity.length === 0 && (
+											<div className="text-center py-12 text-muted-foreground border-4 border-border border-dashed p-8">
+												<p className="text-lg">No activity yet</p>
+											</div>
+										)}
+									</div>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>

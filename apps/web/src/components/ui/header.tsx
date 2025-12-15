@@ -1,9 +1,13 @@
 import { Link } from "react-router";
+import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { ModeToggle } from "../mode-toggle";
 
-const Header = () => {
+interface HeaderProps {
+	hideThemeToggle?: boolean;
+}
+
+const Header = ({ hideThemeToggle = false }: HeaderProps) => {
 	const { user, isLoading, isAuthenticated, login, logout } = useAuth();
 
 	return (
@@ -15,24 +19,19 @@ const Header = () => {
 				</Link>
 
 				<div className="flex items-center space-x-3">
-					<ModeToggle />
+					{!hideThemeToggle && <ModeToggle />}
 
 					{isLoading ? (
-						// Show loading state
 						<div className="animate-pulse text-sm text-muted-foreground">
 							Loading...
 						</div>
 					) : isAuthenticated ? (
-						// Show authenticated user options
 						<>
-							<span className="text-sm text-foreground">
+							<span className="text-sm text-foreground hidden md:inline">
 								Welcome, {user?.firstName || user?.username || user?.email}!
 							</span>
-							<Link
-								to={
-									user?.username ? `/profile/${user.username}` : "/my/profile"
-								}
-							>
+
+							<Link to={`/profile/${user?.username}`}>
 								<Button
 									variant="outline"
 									className="neo-brutal-button border-primary text-primary bg-secondary hover:bg-secondary hover:text-black"
@@ -48,7 +47,6 @@ const Header = () => {
 							</Button>
 						</>
 					) : (
-						// Show unauthenticated user options (current state)
 						<>
 							<Button
 								onClick={login}
