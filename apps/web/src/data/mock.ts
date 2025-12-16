@@ -25,8 +25,8 @@ export const mockUser = {
 	totalPosts: 234,
 };
 
-// --- Categories ---
-export const categories = [
+// --- topics ---
+export const topics = [
 	{
 		id: 1,
 		name: "General Discussion",

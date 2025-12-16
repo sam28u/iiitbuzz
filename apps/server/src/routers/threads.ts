@@ -1,4 +1,4 @@
-import { count, eq } from "drizzle-orm";
+import { count, eq ,sql, desc } from "drizzle-orm";
 import type { FastifyInstance , FastifyRequest} from "fastify";
 import {
 	createThreadSchema,
