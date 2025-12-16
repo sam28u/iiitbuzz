@@ -1,7 +1,8 @@
-import { count, eq } from "drizzle-orm";
+import { count, eq , sql} from "drizzle-orm";
 import type { FastifyInstance , FastifyRequest} from "fastify";
 import { DrizzleClient } from "@/db/index";
 import { posts as postsTable } from "@/db/schema/post.schema";
+import { users as usersTable } from "@/db/schema/user.schema";
 import {
 	createPostSchema,
 	postIdParamsSchema,
@@ -42,16 +43,42 @@ export async function postRoutes(fastify: FastifyInstance) {
           .send({ success: false, error: "Invalid thread ID" });
       const threadId = params.data.id;
       try {
-        const [threadPosts, countResult] = await Promise.all([
-          DrizzleClient.query.posts.findMany({
-            where: (p, { eq }) => eq(p.threadId, threadId),
-            orderBy: (p, { asc }) => [asc(p.createdAt)],
-            limit: limit,
-            offset: offset,
-          }),
-          DrizzleClient.select({ total: count() })
+        const postsQuery = DrizzleClient.select({
+            // Post Data
+            postId: postsTable.id,
+            content: postsTable.content,
+            createdAt: postsTable.createdAt,
+            // Assuming we will track likes/votes later
+            likes: postsTable.vote, 
+            
+            // Author/User Data
+            authorId: usersTable.id,
+            authorName:sql<string>`
+                CASE 
+                    WHEN ${usersTable.username} IS NOT NULL THEN ${usersTable.username} 
+                    ELSE ${usersTable.firstName} 
+                END
+            `.as('authorName'), 
+            // authorRole: usersTable.role,     
+           
+            
+            
+        })
+        .from(postsTable)
+        .leftJoin(usersTable, eq(postsTable.createdBy, usersTable.id))
+        .where(eq(postsTable.threadId, threadId))
+        .orderBy(postsTable.createdAt)
+        .limit(limit)
+        .offset(offset);
+
+        // --- 🎯 COUNT QUERY (remains the same) ---
+        const countQuery = DrizzleClient.select({ total: count() })
             .from(postsTable)
-            .where(eq(postsTable.threadId, threadId)),
+            .where(eq(postsTable.threadId, threadId));
+
+        const [threadPosts, countResult] = await Promise.all([
+          postsQuery,
+          countQuery,
         ]);
 
         return reply.status(200).send({

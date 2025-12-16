@@ -183,7 +183,10 @@ export default function ThreadsPage() {
                             </div>
                         </div>
                         <Link
-                            to={`/topic/${topicId}/new-thread`} // Link to the Create Thread Page
+                            // 1. Change path to the global new thread component
+                            to={`/new-thread`} 
+                            // 2. Pass the topic details via state
+                            state={{ initialTopicId: topicId, initialTopicName: topic.topicName }}
                             className="border-3 border-border bg-primary px-4 sm:px-6 py-2 font-bold text-sm sm:text-base text-primary-foreground shadow-[4px_4px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:translate-x-[2px] hover:translate-y-[2px] self-start"
                         >
                             New Thread
