@@ -60,9 +60,6 @@ export default function ThreadPage() {
     const [thread, setThread] = useState<ThreadDetail | null>(null);
     const [posts, setPosts] = useState<PostDetail[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    // State for the Reply Box
     const [replyContent, setReplyContent] = useState("");
     const [submittingReply, setSubmittingReply] = useState(false);
     
