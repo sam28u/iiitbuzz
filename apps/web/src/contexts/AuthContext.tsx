@@ -6,6 +6,7 @@ import {
 	useEffect,
 	useState,
 } from "react";
+import { toast } from "sonner";
 
 interface User {
 	id: string;
@@ -87,8 +88,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 				credentials: "include",
 			});
 			setUser(null);
+			toast.success("You have been logged out. See you soon! 👋");
 		} catch (error) {
 			console.error("Logout failed:", error);
+			toast.error("Logout failed. Please try again.");
 		}
 	};
 

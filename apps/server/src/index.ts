@@ -40,7 +40,7 @@ fastify.register(fastifyOauth2, {
 		auth: fastifyOauth2.GOOGLE_CONFIGURATION,
 	},
 	scope: ["openid", "profile", "email"],
-	startRedirectPath: "/auth/google",
+	startRedirectPath: "/api/auth/google",
 	callbackUri: env.GOOGLE_REDIRECT_URI,
 	cookie: {
 		secure: env.NODE_ENV === "production",

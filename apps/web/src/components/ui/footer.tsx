@@ -8,7 +8,7 @@ const Footer = () => {
 				<div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
 					<div className="col-span-1 md:col-span-2">
 						<div className="flex items-center space-x-2 mb-4">
-							<div className="w-8 h-8 bg-secondary border-2 border-primary pixel-pulse"></div>
+						    <img src="/images/logo.png" alt="IIITBuzz Logo" className="w-8 h-8" />
 							<h3 className="pixel-font text-xl text-primary">IIITBuzz</h3>
 						</div>
 						<p className="text-sm text-muted-foreground mb-4">

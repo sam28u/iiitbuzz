@@ -44,14 +44,11 @@ export async function postRoutes(fastify: FastifyInstance) {
       const threadId = params.data.id;
       try {
         const postsQuery = DrizzleClient.select({
-            // Post Data
             postId: postsTable.id,
             content: postsTable.content,
             createdAt: postsTable.createdAt,
-            // Assuming we will track likes/votes later
             likes: postsTable.vote, 
             
-            // Author/User Data
             authorId: usersTable.id,
             authorName:sql<string>`
                 CASE 
@@ -59,7 +56,6 @@ export async function postRoutes(fastify: FastifyInstance) {
                     ELSE ${usersTable.firstName} 
                 END
             `.as('authorName'), 
-            // authorRole: usersTable.role,     
            
             
             
@@ -71,7 +67,6 @@ export async function postRoutes(fastify: FastifyInstance) {
         .limit(limit)
         .offset(offset);
 
-        // --- 🎯 COUNT QUERY (remains the same) ---
         const countQuery = DrizzleClient.select({ total: count() })
             .from(postsTable)
             .where(eq(postsTable.threadId, threadId));
@@ -138,7 +133,6 @@ export async function postRoutes(fastify: FastifyInstance) {
 					.status(400)
 					.send({ success: false, error: "Invalid request body" });
 
-			// Ensure thread exists
 			const thread = await DrizzleClient.query.threads.findFirst({
 				where: (t, { eq }) => eq(t.id, body.data.threadId),
 			});
