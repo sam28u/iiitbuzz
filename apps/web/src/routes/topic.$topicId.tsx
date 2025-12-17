@@ -64,10 +64,8 @@ export default function ThreadsPage() {
     // Pagination & Sorting State
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const threadsPerPage = 10; // Matches your limit in threads.ts
-
-    // NOTE: This state would be used to control the query to the backend (e.g., &sort=latest)
-    // const [sortBy, setSortBy] = useState("latest"); 
+    const [sortBy, setSortBy] = useState<"latest" | "top" | "trending" | "views">("latest");
+    const threadsPerPage = 10; // Matches your limit in threads.ts 
 
     useEffect(() => {
         if (!topicId) {
@@ -83,7 +81,7 @@ export default function ThreadsPage() {
             try {
                 // 1. Fetch Topic Details (Needed for the header)
                 // NOTE: This GET /topics/:id route must be added to your topics.ts file.
-                const topicResponse = await fetch(`${backendUrl}/topics/${topicId}`, { credentials: "include" });
+                const topicResponse = await fetch(`${backendUrl}/api/topics/${topicId}`, { credentials: "include" });
                 const topicData = await topicResponse.json();
 
                 if (!topicResponse.ok || !topicData.success) {
@@ -93,7 +91,7 @@ export default function ThreadsPage() {
 
                 // 2. Fetch Threads List (Uses existing route)
                 const threadsResponse = await fetch(
-                    `${backendUrl}/topics/${topicId}/threads?page=${currentPage}&limit=${threadsPerPage}`,
+                    `${backendUrl}/api/topics/${topicId}/threads?page=${currentPage}&limit=${threadsPerPage}&sort=${sortBy}`,
                     { credentials: "include" }
                 );
 
@@ -118,7 +116,7 @@ export default function ThreadsPage() {
         };
 
         fetchTopicAndThreads();
-    }, [topicId, currentPage]);
+    }, [topicId, currentPage, sortBy]);
 
     if (loading) {
         return (
@@ -159,7 +157,7 @@ export default function ThreadsPage() {
             <Header />
             
             {/* Header Section */}
-            <header className="border-b-4 border-border bg-card">
+            <header className="neo-brutal-header">
                 <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6">
                     <Link
                         to="/home" // Changed from href="/" to to="/home"
@@ -187,7 +185,7 @@ export default function ThreadsPage() {
                             to={`/new-thread`} 
                             // 2. Pass the topic details via state
                             state={{ initialTopicId: topicId, initialTopicName: topic.topicName }}
-                            className="border-3 border-border bg-primary px-4 sm:px-6 py-2 font-bold text-sm sm:text-base text-primary-foreground shadow-[4px_4px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:translate-x-[2px] hover:translate-y-[2px] self-start"
+                            className="neo-brutal-button-strong bg-primary px-4 sm:px-6 py-2 font-bold text-sm sm:text-base text-primary-foreground self-start"
                         >
                             New Thread
                         </Link>
@@ -199,16 +197,22 @@ export default function ThreadsPage() {
                 {/* Sorting Options */}
                 <div className="mb-4 sm:mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-wrap gap-2">
-                        {/* These buttons would update the sorting state and trigger a re-fetch */}
-                        <button className="border-3 border-border bg-foreground px-3 sm:px-4 py-2 font-bold text-sm text-background shadow-[4px_4px_0px_0px_var(--shadow-color)]">
-                            Latest
-                        </button>
-                        <button className="border-3 border-border bg-card px-3 sm:px-4 py-2 font-bold text-sm text-card-foreground shadow-[4px_4px_0px_0px_var(--shadow-color)] hover:opacity-80">
-                            Top
-                        </button>
-                        <button className="border-3 border-border bg-card px-3 sm:px-4 py-2 font-bold text-sm text-card-foreground shadow-[4px_4px_0px_0px_var(--shadow-color)] hover:opacity-80">
-                            Trending
-                        </button>
+                        {(["latest", "top", "trending", "views"] as const).map((sort) => (
+                            <button
+                                key={sort}
+                                onClick={() => {
+                                    setSortBy(sort);
+                                    setCurrentPage(1); // Reset to first page when sorting changes
+                                }}
+                                className={`neo-brutal-button px-3 sm:px-4 py-2 font-bold text-sm ${
+                                    sortBy === sort
+                                        ? "bg-foreground text-background"
+                                        : "bg-card text-card-foreground"
+                                }`}
+                            >
+                                {sort.charAt(0).toUpperCase() + sort.slice(1)}
+                            </button>
+                        ))}
                     </div>
                     <span className="font-bold text-muted-foreground text-xs sm:text-sm">{threads.length} Threads</span>
                 </div>
@@ -216,19 +220,17 @@ export default function ThreadsPage() {
                 {/* Threads List */}
                 <div className="space-y-3 sm:space-y-4">
                     {threads.length === 0 ? (
-                        <div className="text-center py-12 text-muted-foreground border-4 border-border border-dashed p-8">
+                        <div className="neo-brutal-empty">
                             <p className="text-lg">No threads found in this topic. Be the first to start one!</p>
                         </div>
                     ) : (
                         threads.map((thread) => (
                             <Link key={thread.id} to={`/thread/${thread.id}`} className="block">
-                                <div
-                                    className={`border-4 border-border bg-card text-card-foreground p-4 sm:p-5 shadow-[6px_6px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[3px_3px_0px_0px_var(--shadow-color)] hover:translate-x-[3px] hover:translate-y-[3px]`}
-                                >
+                                <div className="neo-brutal-card p-4 sm:p-5">
                                     <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
                                         {/* Author Avatar (Using first two letters of username, with fallback) */}
                                         <div className="flex-shrink-0 self-start">
-                                            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center border-3 border-border bg-primary font-bold text-sm sm:text-base text-primary-foreground">
+                                            <div className="neo-brutal-avatar h-10 w-10 sm:h-12 sm:w-12 text-sm sm:text-base">
                                                 {/* Defensive coding: use optional chaining and provide a fallback string */}
                                                 {(thread.author?.username || '??').substring(0, 2).toUpperCase()}
                                             </div>
@@ -281,7 +283,7 @@ export default function ThreadsPage() {
                         <button
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
-                            className="neo-brutal-button px-4 py-2 bg-card text-foreground disabled:opacity-50"
+                            className="neo-brutal-button bg-card px-4 py-2 text-foreground disabled:opacity-50"
                         >
                             Previous
                         </button>
@@ -291,7 +293,7 @@ export default function ThreadsPage() {
                         <button
                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
-                            className="neo-brutal-button px-4 py-2 bg-card text-foreground disabled:opacity-50"
+                            className="neo-brutal-button bg-card px-4 py-2 text-foreground disabled:opacity-50"
                         >
                             Next
                         </button>

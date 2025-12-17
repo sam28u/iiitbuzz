@@ -28,7 +28,7 @@ export default function CreateTopicPage() {
         }
 
         try {
-            const response = await fetch(`${backendUrl}/topics`, {
+            const response = await fetch(`${backendUrl}/api/topics`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -256,3 +256,43 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+@layer utilities {
+	/* Neo-brutalism style building blocks */
+
+	.neo-brutal-card-lg {
+		@apply border-4 border-border bg-card text-card-foreground shadow-[8px_8px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[4px_4px_0px_0px_var(--shadow-color)] hover:translate-x-[4px] hover:translate-y-[4px];
+	}
+
+	.neo-brutal-card {
+		@apply border-4 border-border bg-card text-card-foreground shadow-[6px_6px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[3px_3px_0px_0px_var(--shadow-color)] hover:translate-x-[3px] hover:translate-y-[3px];
+	}
+
+	.neo-brutal-card-sm {
+		@apply border-4 border-border bg-card text-card-foreground shadow-[4px_4px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:translate-x-[2px] hover:translate-y-[2px];
+	}
+
+	.neo-brutal-header {
+		@apply border-b-4 border-border bg-card;
+	}
+
+	.neo-brutal-button {
+		@apply border-3 border-border shadow-[3px_3px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:translate-x-[1px] hover:translate-y-[1px];
+	}
+
+	.neo-brutal-button-strong {
+		@apply border-3 border-border shadow-[4px_4px_0px_0px_var(--shadow-color)] transition-all hover:shadow-[2px_2px_0px_0px_var(--shadow-color)] hover:translate-x-[2px] hover:translate-y-[2px];
+	}
+
+	.neo-brutal-input {
+		@apply border-4 border-border bg-card text-foreground shadow-[4px_4px_0px_0px_var(--shadow-color)] focus:outline-none focus:shadow-[6px_6px_0px_0px_var(--shadow-color)];
+	}
+
+	.neo-brutal-empty {
+		@apply border-4 border-border border-dashed p-8 text-center py-12 text-muted-foreground;
+	}
+
+	.neo-brutal-avatar {
+		@apply flex items-center justify-center border-3 border-border bg-primary font-bold text-primary-foreground;
+	}
+}

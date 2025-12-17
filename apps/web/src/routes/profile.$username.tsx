@@ -51,7 +51,7 @@ export default function UserProfilePage() {
 			setError(null);
 
 			try {
-				const response = await fetch(`${backendUrl}/user/details/${username}`, {
+				const response = await fetch(`${backendUrl}/api/user/details/${username}`, {
 					credentials: "include", // Important to determine isOwnProfile on backend
 				});
 

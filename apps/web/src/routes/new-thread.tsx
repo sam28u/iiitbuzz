@@ -58,7 +58,7 @@ export default function NewThreadPage() {
         const fetchTopics = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`${backendUrl}/topics`, { credentials: "include" });
+                const response = await fetch(`${backendUrl}/api/topics`, { credentials: "include" });
                 const data = await response.json();
                 
                 if (!response.ok || !data.success) {
@@ -128,7 +128,7 @@ export default function NewThreadPage() {
                 threadTitle: title,
             };
 
-            const response = await fetch(`${backendUrl}/threads/new`, {
+            const response = await fetch(`${backendUrl}/api/threads/new`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include", 

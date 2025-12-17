@@ -84,7 +84,7 @@ export default function ProfileSettingsPage() {
 				cleanedData[key] = value === "" ? null : value;
 			});
 
-			const response = await fetch(`${backendUrl}/user/me`, {
+			const response = await fetch(`${backendUrl}/api/user/me`, {
 				method: "PATCH",
 				headers: {
 					"Content-Type": "application/json",
