@@ -30,6 +30,15 @@ export const api = {
         const query = new URLSearchParams(params as any).toString();
         return apiFetch<{ success: boolean; threads: any[]; pagination: Pagination }>(`/threads?${query}`);
     },
+
+    getUserThreads: (userId: string, params: { page: number; limit: number; sort: string; search?: string }) => {
+        const query = new URLSearchParams(params as any).toString();
+        return apiFetch<{
+            success: boolean;
+            threads: any[];
+            pagination: Pagination
+        }>(`/users/${userId}/threads?${query}`);
+    },
     
     getThreadById: (id: string) => 
         apiFetch<{ success: boolean; thread: any }>(`/threads/${id}`),
@@ -87,4 +96,15 @@ export const api = {
 
     // Stats
     getStats: () => apiFetch<{ success: boolean; stats: ForumStats }>("/stats"),
+
+    // Get stats for a specific user
+    getUserStats: (userId: string) =>
+        apiFetch<{
+            success: boolean;
+            stats: {
+                totalTopics: number;
+                totalThreads: number;
+                totalPosts: number
+            }
+        }>(`/stats/${userId}`),
 };

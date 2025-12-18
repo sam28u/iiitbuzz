@@ -7,7 +7,7 @@ import {
 } from "@/dto/threads.dto";
 import { DrizzleClient } from "../db/index";
 import { threads as threadsTable } from "../db/schema/thread.schema";
-import { posts as postsTable } from "../db/schema/post.schema"; // For counting replies/last active
+import { posts as postsTable } from "../db/schema/post.schema"; 
 import { users as usersTable } from "../db/schema/user.schema";
 import { topics as topicsTable } from "../db/schema/topic.schema";
 import { attachUser, authenticateUser, optionalAuth } from "./auth";
@@ -77,7 +77,7 @@ export async function threadRoutes(fastify: FastifyInstance) {
                     END
                 `.as('authorName'),
                
-                replies: sql<number>`GREATEST(COUNT(${postsTable.id}) - 1, 0)`.as('replies'),  
+                replies: sql<number>`GREATEST(COUNT(${postsTable.id}) - 0, 0)`.as('replies'),  
                 lastActive: sql<string>`MAX(${postsTable.createdAt})`.as('lastActive'),
                 likes: sql<number>`COALESCE(SUM(${postsTable.vote}), 0)`.as('likes'),
                 topicName: topicsTable.topicName,
@@ -138,6 +138,7 @@ export async function threadRoutes(fastify: FastifyInstance) {
           }
         }
     );
+
 	fastify.get(
     "/topics/:id/threads",
     {
@@ -207,7 +208,7 @@ export async function threadRoutes(fastify: FastifyInstance) {
             END
           `.as('authorName'),
           
-          replies: sql<number>`COUNT(${postsTable.id}) - 1`.as('replies'),
+          replies: sql<number>`COUNT(${postsTable.id}) - 0`.as('replies'),
           lastActive: sql<string>`MAX(${postsTable.createdAt})`.as('lastActive'),
           likes: sql<number>`COALESCE(SUM(${postsTable.vote}), 0)`.as('likes'),
         })
@@ -267,8 +268,6 @@ export async function threadRoutes(fastify: FastifyInstance) {
     }
   );
 
-
-
 	fastify.get(
   "/threads/:id",
   { preHandler: [authenticateUser, attachUser] },
@@ -319,6 +318,78 @@ export async function threadRoutes(fastify: FastifyInstance) {
     }
   }
 );
+
+  fastify.get(
+        "/users/:userId/threads",
+        {
+            preHandler: optionalAuth,
+            schema: {
+                params: {
+                    type: "object",
+                    properties: { userId: { type: "string", format: "uuid" } },
+                    required: ["userId"]
+                },
+                querystring: {
+                    type: "object",
+                    properties: {
+                        page: { type: "integer", minimum: 1, default: 1 },
+                        limit: { type: "integer", minimum: 1, maximum: 50, default: 10 },
+                    }
+                }
+            }
+        },
+        async (request, reply) => {
+            const { userId } = request.params as { userId: string };
+            const { page, limit } = request.query as { page: number; limit: number };
+            const offset = (page - 1) * limit;
+            try {
+                const userThreadsQuery = DrizzleClient.select({
+                    id: threadsTable.id,
+                    threadTitle: threadsTable.threadTitle,
+                    createdAt: threadsTable.createdAt,
+                    viewCount: threadsTable.viewCount,
+                    topicName: topicsTable.topicName,
+                    topicId: topicsTable.id,
+                    replies: sql<number>`CAST(COUNT(${postsTable.id}) - 0 AS INTEGER)`.as('replies'),
+                    likes: sql<number>`COALESCE(SUM(${postsTable.vote}), 0)`.as('likes'),
+                })
+                .from(threadsTable)
+                .leftJoin(topicsTable, eq(threadsTable.topicId, topicsTable.id))
+                .leftJoin(postsTable, eq(postsTable.threadId, threadsTable.id))
+                .where(eq(threadsTable.createdBy, userId))
+                .groupBy(
+                    threadsTable.id, 
+                    threadsTable.threadTitle, 
+                    threadsTable.createdAt, 
+                    threadsTable.viewCount, 
+                    topicsTable.topicName,
+                    topicsTable.id
+                )
+                .orderBy(desc(threadsTable.createdAt))
+                .limit(limit)
+                .offset(offset);
+                const countQuery = DrizzleClient.select({ total: count() })
+                    .from(threadsTable)
+                    .where(eq(threadsTable.createdBy, userId));
+                const [threads, totalCount] = await Promise.all([
+                    userThreadsQuery,
+                    countQuery
+                ]);
+                return reply.send({
+                    success: true,
+                    threads,
+                    pagination: {
+                        page,
+                        limit,
+                        total: totalCount[0]?.total ?? 0
+                    }
+                });
+            } catch (error) {
+                fastify.log.error(error);
+                return reply.status(500).send({ success: false, error: "Internal Server Error" });
+            }
+        }
+    );
 
 	fastify.post(
 		"/threads/new",

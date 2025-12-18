@@ -4,7 +4,7 @@ import type { Topic } from "@/types/forum";
 
 export const TopicCard = ({ topic }: { topic: Topic }) => (
     <Link to={`/topic/${topic.id}`} className="group block">
-        <div className="neo-brutal-card-lg p-4 sm:p-6 h-full">
+        <div className="neo-brutal-card-lg p-4 sm:p-6 h-full flex flex-col">
             <h3 className="font-bold text-lg sm:text-xl truncate mb-3">
                 {topic.topicName}
             </h3>

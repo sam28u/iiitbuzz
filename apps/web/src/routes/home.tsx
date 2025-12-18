@@ -19,7 +19,6 @@ export default function HomePage() {
     const [recentThreads, setRecentThreads] = useState<RecentThread[]>([]);
     const [stats, setStats] = useState<ForumStats | null>(null);
     const [loading, setLoading] = useState(true);
-
     useEffect(() => {
         const loadPageData = async () => {
             try {
@@ -28,8 +27,20 @@ export default function HomePage() {
                     api.getThreads({ page: 1, limit: 5, sort: "latest" }),
                     api.getStats()
                 ]);
-
-                setTopics(topRes.data);
+                const topicsWithCounts = await Promise.all(
+                    topRes.data.map(async (topic: Topic) => {
+                        try {
+                            const threadRes = await api.getThreadsByTopic(topic.id, 1, 1, "latest");
+                            return {
+                                ...topic,
+                                threadCount: threadRes.pagination.count 
+                            };
+                        } catch {
+                            return { ...topic, threadCount: 0 };
+                        }
+                    })
+                );
+                setTopics(topicsWithCounts);
                 setStats(statRes.stats);
                 setRecentThreads(thrRes.threads.map((t: any) => ({
                     id: t.id,

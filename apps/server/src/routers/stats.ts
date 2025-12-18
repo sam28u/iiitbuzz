@@ -6,6 +6,8 @@ import { threads as threadsTable } from "../db/schema/thread.schema";
 import { topics as topicsTable } from "../db/schema/topic.schema";
 import { users as usersTable } from "../db/schema/user.schema";
 import { optionalAuth } from "./auth";
+import { eq } from "drizzle-orm";
+import { z } from "zod";
 
 export async function statsRoutes(fastify: FastifyInstance) {
 	fastify.get(
@@ -39,7 +41,47 @@ export async function statsRoutes(fastify: FastifyInstance) {
 					error: "Failed to fetch stats",
 				});
 			}
+		}
+	);
+	fastify.get(
+		"/stats/:userId",
+		{
+			preHandler: optionalAuth,
 		},
+		async (request, reply) => {
+			try {
+				const paramsSchema = z.object({
+					userId: z.string().uuid(),
+				});
+				const { userId } = paramsSchema.parse(request.params);
+
+				const [threadResult, postResult, topicResult] = await Promise.all([
+					DrizzleClient.select({ total: count() })
+						.from(threadsTable)
+						.where(eq(threadsTable.createdBy, userId)),
+					DrizzleClient.select({ total: count() })
+						.from(postsTable)
+						.where(eq(postsTable.createdBy, userId)),
+					DrizzleClient.select({ total: count() })
+						.from(topicsTable)
+						.where(eq(topicsTable.createdBy, userId)),
+				]);
+
+				return reply.status(200).send({
+					success: true,
+					stats: {
+						totalTopics: topicResult[0]?.total ?? 0,
+						totalThreads: threadResult[0]?.total ?? 0,
+						totalPosts: postResult[0]?.total ?? 0,
+					},
+				});
+			} catch (error) {
+				fastify.log.error("Error fetching stats:", error);
+				return reply.status(500).send({
+					success: false,
+					error: "Failed to fetch stats",
+				});
+			}
+		}
 	);
 }
-

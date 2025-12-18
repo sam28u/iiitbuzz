@@ -9,6 +9,7 @@ import {
 import { toast } from "sonner";
 
 interface User {
+    imageUrl: string;
 	id: string;
 	email: string;
 	username: string | null;
