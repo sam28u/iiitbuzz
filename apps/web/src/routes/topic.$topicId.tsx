@@ -4,7 +4,7 @@ import Loader from "@/components/loader";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams} from "react-router-dom";
 
 
 import { api } from "@/lib/api";
@@ -55,15 +55,16 @@ export default function ThreadsPage() {
         loadData();
     }, [topicId, currentPage, sortBy]);
 
-    if (loading) return 
+    if (loading) return (
     <div className="p-20 text-center">
         <Header/>
         <Loader />
-    </div>;
+    </div>
+    );
     if (!topic) return <div className="p-20 text-center font-bold">Topic not found</div>;
     
-    // Get presentation data for the header
-    const presentation = getTopicPresentation(topic.id);
+    
+    
 
     return (
         <div className="min-h-screen flex flex-col bg-background">

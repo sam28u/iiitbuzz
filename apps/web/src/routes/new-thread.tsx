@@ -8,13 +8,7 @@ import { CategoryTile } from "@/components/forum/CategoryTile";
 import type { TopicOption } from "@/types/forum";
 import { Button } from "@/components/ui/button";
 
-const topicIconMap: Record<string, string> = {
-  'General Discussion': '💬',
-  'Academics': '📚',
-  'Campus Life': '🏫',
-  'Tech & Gaming': '🎮',
-  'Marketplace': '🛒',
-};
+
 
 export default function NewThreadPage() {
   const navigate = useNavigate();

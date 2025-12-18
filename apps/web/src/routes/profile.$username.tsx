@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router";
-import { ArrowLeft, MapPin, Calendar, Settings } from "lucide-react";
+import {  MapPin, Calendar, Settings } from "lucide-react";
 import { api } from "@/lib/api";
 import { StatCard } from "@/components/profile/StatCard";
 import { ThreadRow } from "@/components/forum/ThreadRow"; // we will use this when we return real threads created by the user

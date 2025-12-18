@@ -1,13 +1,13 @@
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { 
   User, 
   Settings, 
   MessageSquare, 
   Github, 
   LogOut, 
-  ChevronDown 
+  ChevronDown
 } from "lucide-react";
-
+import { RxDiscordLogo } from "react-icons/rx";
 // UI Components
 import {
   DropdownMenu,
@@ -32,7 +32,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProfileDropdown() {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+ 
 
   // If there's no user, don't render the dropdown
   if (!user) return null;
@@ -101,6 +101,17 @@ export default function ProfileDropdown() {
           >
             <Github size={18} />
             GitHub
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a 
+            href="https://discord.gg/q74qC2exY4" 
+            target="_blank" 
+            rel="noreferrer"
+            className="flex cursor-pointer items-center gap-2 p-3 font-bold transition-all hover:translate-x-1 hover:bg-foreground hover:text-background"
+          >
+            <RxDiscordLogo size={18} />
+            Discord
           </a>
         </DropdownMenuItem>
 

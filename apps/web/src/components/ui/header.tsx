@@ -49,7 +49,7 @@ const Header = ({ hideThemeToggle = false }: HeaderProps) => {
                                 >
                                     <Plus className="h-4 w-4" />
                                     
-                                    <span className="inline xs:hidden">New Thread</span>
+                                    <span className="inline">New Thread</span>
                                 </Link>
                             )}
 

@@ -1,4 +1,4 @@
-import { count, eq, sql, desc, asc, ilike } from "drizzle-orm";
+import { count, eq, sql, desc,  ilike } from "drizzle-orm";
 import type { FastifyInstance , FastifyRequest} from "fastify";
 import {
 	createThreadSchema,
@@ -87,7 +87,7 @@ export async function threadRoutes(fastify: FastifyInstance) {
             .from(threadsTable)
             .leftJoin(usersTable, eq(threadsTable.createdBy, usersTable.id))
             .leftJoin(postsTable, eq(postsTable.threadId, threadsTable.id))
-            .leftJoin(topicsTable, eq(threadsTable.topicId, topicsTable.id))
+            .leftJoin(topicsTable, eq(threadsTable.topicId, topicsTable.id));
             
            
             const withSearch = (search && search.trim())

@@ -12,7 +12,6 @@ import { api } from "@/lib/api";
 import Header from "@/components/ui/header";
 
 const PAGE_LIMIT = 20;
-const backendUrl = import.meta.env.VITE_BACKEND_API_URL || "http://localhost:3000";
 
 export default function AllThreadsPage() {
     const [threads, setThreads] = useState<ThreadListItem[]>([]);
