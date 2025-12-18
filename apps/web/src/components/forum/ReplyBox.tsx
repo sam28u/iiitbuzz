@@ -42,7 +42,8 @@ export const ReplyBox = ({
                         type="button"
                         size="sm"
                         variant="neutral"
-                        onClick={() => label !== 'Link' && onFormat(label)}
+                        onClick={() => onFormat(label)}
+                        disabled={label === 'Link'}
                         className="neo-brutal-button bg-card px-3 py-2 font-bold text-xs"
                     >
                         {label === '**' ? 'Bold' : label === '*' ? 'Italic' : 'Link'}

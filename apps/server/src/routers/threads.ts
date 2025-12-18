@@ -77,7 +77,7 @@ export async function threadRoutes(fastify: FastifyInstance) {
                     END
                 `.as('authorName'),
                
-                replies: sql<number>`COUNT(${postsTable.id}) - 1`.as('replies'), 
+                replies: sql<number>`GREATEST(COUNT(${postsTable.id}) - 1, 0)`.as('replies'),  
                 lastActive: sql<string>`MAX(${postsTable.createdAt})`.as('lastActive'),
                 likes: sql<number>`COALESCE(SUM(${postsTable.vote}), 0)`.as('likes'),
                 topicName: topicsTable.topicName,

@@ -81,24 +81,7 @@ export interface TopicOption {
     icon?: string; 
 }
 
-export interface ThreadListItem {
-    id: string;
-    title: string;
-    topicName: string;
-    topicColor: string;
-    authorName: string;
-    lastActive: string;
-    replies: number;
-    views: number;
-    likes: number;
-    isPinned: boolean;
-}
 
-export interface Pagination {
-    page: number;
-    limit: number;
-    count: number;
-}
 
 //for thread/$threadId
 
