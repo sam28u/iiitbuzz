@@ -69,7 +69,7 @@ export default function HomePage() {
             <main className="mx-auto max-w-7xl px-4 py-8 flex-1">
                 <section className="mb-12">
                     <h2 className="mb-6 font-bold text-3xl">Topics</h2>
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
                         {topics.map(t => <TopicCard key={t.id} topic={t} />)}
                     </div>
                 </section>

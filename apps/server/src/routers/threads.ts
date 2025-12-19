@@ -309,6 +309,12 @@ export async function threadRoutes(fastify: FastifyInstance) {
           .send({ success: false, error: "Thread not found" });
       }
 
+      await DrizzleClient.update(threadsTable)
+        .set({
+          viewCount: sql`${threadsTable.viewCount} + 1`,
+        })
+        .where(eq(threadsTable.id, params.data.id));
+
       return reply.status(200).send({ success: true, thread });
     } catch (error) {
       fastify.log.error("Error fetching thread:", error);

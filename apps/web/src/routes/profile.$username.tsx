@@ -19,7 +19,6 @@ export default function UserProfilePage() {
     const [userStats, setUserStats] = useState<{
         totalTopics: number;
         totalThreads: number;
-        totalPosts: number;
     } | null>(null);
     const [recentThreads, setRecentThreads] = useState<RecentThread[]>([]);
     const [loading, setLoading] = useState(true);
@@ -102,7 +101,7 @@ export default function UserProfilePage() {
                         <div className="border-4 border-border bg-card p-6 shadow-[6px_6px_0px_0px_var(--shadow-color)]">
                             <h2 className="mb-4 font-black text-xl uppercase">Statistics</h2>
                             <div className="grid grid-cols-2 gap-3">
-                                <StatCard label="Posts" value={userStats?.totalPosts ?? 0} color="primary" />
+                                <StatCard label="Posts" value={user?.totalPosts ?? 0} color="primary" />
                                 <StatCard label="Threads" value={userStats?.totalThreads ?? 0} color="secondary" />
                                 <StatCard label="Likes" value={0} color="accent" />
                                 <StatCard label="Solved" value={0} color="muted" />

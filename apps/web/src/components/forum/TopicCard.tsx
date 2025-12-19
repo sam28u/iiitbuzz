@@ -16,9 +16,6 @@ export const TopicCard = ({ topic }: { topic: Topic }) => (
                     <MessageSquare className="h-4 w-4" />
                     {topic.threadCount ?? 0} Threads
                 </span>
-                <span className="text-muted-foreground">
-                    {topic.postCount ?? 0} Posts
-                </span>
             </div>
         </div>
     </Link>

@@ -54,14 +54,10 @@ export async function statsRoutes(fastify: FastifyInstance) {
 					userId: z.string().uuid(),
 				});
 				const { userId } = paramsSchema.parse(request.params);
-
-				const [threadResult, postResult, topicResult] = await Promise.all([
+				const [threadResult, topicResult] = await Promise.all([
 					DrizzleClient.select({ total: count() })
 						.from(threadsTable)
 						.where(eq(threadsTable.createdBy, userId)),
-					DrizzleClient.select({ total: count() })
-						.from(postsTable)
-						.where(eq(postsTable.createdBy, userId)),
 					DrizzleClient.select({ total: count() })
 						.from(topicsTable)
 						.where(eq(topicsTable.createdBy, userId)),
@@ -72,7 +68,6 @@ export async function statsRoutes(fastify: FastifyInstance) {
 					stats: {
 						totalTopics: topicResult[0]?.total ?? 0,
 						totalThreads: threadResult[0]?.total ?? 0,
-						totalPosts: postResult[0]?.total ?? 0,
 					},
 				});
 			} catch (error) {

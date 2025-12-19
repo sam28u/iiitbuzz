@@ -43,7 +43,6 @@ export const api = {
     getThreadById: (id: string) => 
         apiFetch<{ success: boolean; thread: any }>(`/threads/${id}`),
     
-
     getUserProfile: (username: string) => 
         apiFetch<{ 
             success: boolean; 
@@ -104,7 +103,6 @@ export const api = {
             stats: {
                 totalTopics: number;
                 totalThreads: number;
-                totalPosts: number
             }
         }>(`/stats/${userId}`),
 };

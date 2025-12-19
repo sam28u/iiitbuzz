@@ -146,9 +146,19 @@ export async function postRoutes(fastify: FastifyInstance) {
 				content: body.data.content,
 				createdBy: authUserId,
 			};
-			const [post] = await DrizzleClient.insert(postsTable)
-				.values(toInsert)
-				.returning();
+
+			const post = await DrizzleClient.transaction(async (tx) => {
+				const [newPost] = await tx.insert(postsTable)
+					.values(toInsert)
+					.returning();
+				await tx.update(usersTable)
+					.set({
+						totalPosts: sql`${usersTable.totalPosts} + 1`
+					})
+					.where(eq(usersTable.id, authUserId));
+				return newPost;
+			});
+
 			return reply.status(201).send({ success: true, post });
 		},
 	);
